@@ -64,6 +64,10 @@ void Wall::updateWall()
 	{
 		wallHeight = 480;
 	}
+	if (posX <= 130 && posX >= 10 && !isBlocked) // if the beam isn't blocked when crossing a certain point set player to dead
+	{
+		currentPlayer->setDead();
+	}
 	if (wallActive) 
 	{
 		int playerScore = currentPlayer->getScore();

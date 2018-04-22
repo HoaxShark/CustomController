@@ -88,11 +88,29 @@ bool Game::init(const char * title, int xpos, int ypos, int width, int height, i
 
 	// create rect for ground img
 	ground.x = 0;
-	ground.y = 400;
+	ground.y = 300;
 	ground.w = 680;
-	ground.h = 80;
+	ground.h = 180;
 
-	// create rect for all beam imgs
+	// create rect for player
+	playerRect.x = 50;
+	playerRect.y = 300;
+	playerRect.w = 100;
+	playerRect.h = 100;
+
+	// create rect for score
+	gameoverRect.x = 50;
+	gameoverRect.y = 100;
+	gameoverRect.w = 400;
+	gameoverRect.h = 100;
+
+	// create rect for score
+	scoreRect.x = 50;
+	scoreRect.y = 200;
+	scoreRect.w = 400;
+	scoreRect.h = 100;
+
+	// create texture for all imgs
 	groundImage = IMG_LoadTexture(mainRenderer, "images/ground.png");
 	yellowBeam = IMG_LoadTexture(mainRenderer, "images/yellowBeam.png");
 	redBeam = IMG_LoadTexture(mainRenderer, "images/redBeam.png");
@@ -101,6 +119,15 @@ bool Game::init(const char * title, int xpos, int ypos, int width, int height, i
 	whiteBeam = IMG_LoadTexture(mainRenderer, "images/whiteBeam.png");
 	blackBeam = IMG_LoadTexture(mainRenderer, "images/blackBeam.png");
 	skyImage = IMG_LoadTexture(mainRenderer, "images/sky.png");
+	playerImage = IMG_LoadTexture(mainRenderer, "images/screaming.png");
+
+	// init sdl_ttf
+	if (TTF_Init() == -1) {
+		printf("TTF_Init: %s\n", TTF_GetError());
+		exit(2);
+	}
+
+	Font = TTF_OpenFont("LHANDW.TTF", 24); // set up font
 
 	return true;
 }
@@ -115,6 +142,9 @@ void Game::render()
 
 	// render sky
 	SDL_RenderCopy(mainRenderer, skyImage, NULL, &sky);
+
+	// render player
+	SDL_RenderCopy(mainRenderer, playerImage, NULL, &playerRect);
 
 	// draw to the screen here!
 	// iterate through list of objects
@@ -139,6 +169,11 @@ void Game::render()
 		else if (currentColour == "Black") {
 			SDL_RenderCopy(mainRenderer, blackBeam, NULL, &currentRect);
 		}
+	}
+
+	if (!player->playerAlive)
+	{
+		gameoverTextRender();
 	}
 
 	// render ground
@@ -205,50 +240,71 @@ void Game::clean()
 
 void Game::handleWallBlocking(Wall * currentWall) // checks wall to see if it's blocked and changes the variable if it is or isn't
 {
-	int red = serialInterface->getRedValue();
-	int green = serialInterface->getGreenValue();
-	int blue = serialInterface->getBlueValue();
-	int yellow = serialInterface->getYellowValue();
+	if (player->playerAlive)
+	{
+		int red = serialInterface->getRedValue();
+		int green = serialInterface->getGreenValue();
+		int blue = serialInterface->getBlueValue();
+		int yellow = serialInterface->getYellowValue();
 
-	if ((red >= sensorBlockedValue) && (green >= sensorBlockedValue) && (blue >= sensorBlockedValue)
-		&& (yellow >= sensorBlockedValue) && (currentWall->getColour() == "White")) // if all sensors blocked (White) and the wall is black
-	{
-		currentWall->turnIsBlockedOn();
-	}
-	else if ((red < sensorBlockedValue) && (green < sensorBlockedValue) && (blue < sensorBlockedValue)
-		&& (yellow < sensorBlockedValue) && (currentWall->getColour() == "Black")) // if all sensors are not blocked (Black) and the wall is white
-	{
-		currentWall->turnIsBlockedOn();
-	}
-	else if ((red < sensorBlockedValue) && (green > sensorBlockedValue) && (blue > sensorBlockedValue)
-		&& (yellow > sensorBlockedValue) && (currentWall->getColour() == "Red")) // if red sensor is blocked and the wall is red
-	{
-		currentWall->turnIsBlockedOn();
-	}
-	else if ((red > sensorBlockedValue) && (green < sensorBlockedValue) && (blue > sensorBlockedValue)
-		&& (yellow > sensorBlockedValue) && (currentWall->getColour() == "Green")) // if green sensor is blocked and the wall is green
-	{
-		currentWall->turnIsBlockedOn();
-	}
-	else if ((red > sensorBlockedValue) && (green > sensorBlockedValue) && (blue < sensorBlockedValue)
-		&& (yellow > sensorBlockedValue) && (currentWall->getColour() == "Blue")) // if blue sensor is blocked and the wall is blue
-	{
-		currentWall->turnIsBlockedOn();
-	}
-	else if ((red > sensorBlockedValue) && (green > sensorBlockedValue) && (blue > sensorBlockedValue)
-		&& (yellow < sensorBlockedValue) && (currentWall->getColour() == "Yellow")) // if yellow sensor is blocked and the wall is yellow
-	{
-		currentWall->turnIsBlockedOn();
-	}
-	else
-	{
-		currentWall->turnIsBlockedOff();
+		if ((red >= sensorBlockedValue) && (green >= sensorBlockedValue) && (blue >= sensorBlockedValue)
+			&& (yellow >= sensorBlockedValue) && (currentWall->getColour() == "White")) // if all sensors blocked (White) and the wall is black
+		{
+			currentWall->turnIsBlockedOn();
+		}
+		else if ((red < sensorBlockedValue) && (green < sensorBlockedValue) && (blue < sensorBlockedValue)
+			&& (yellow < sensorBlockedValue) && (currentWall->getColour() == "Black")) // if all sensors are not blocked (Black) and the wall is white
+		{
+			currentWall->turnIsBlockedOn();
+		}
+		else if ((red < sensorBlockedValue) && (green > sensorBlockedValue) && (blue > sensorBlockedValue)
+			&& (yellow > sensorBlockedValue) && (currentWall->getColour() == "Red")) // if red sensor is blocked and the wall is red
+		{
+			currentWall->turnIsBlockedOn();
+		}
+		else if ((red > sensorBlockedValue) && (green < sensorBlockedValue) && (blue > sensorBlockedValue)
+			&& (yellow > sensorBlockedValue) && (currentWall->getColour() == "Green")) // if green sensor is blocked and the wall is green
+		{
+			currentWall->turnIsBlockedOn();
+		}
+		else if ((red > sensorBlockedValue) && (green > sensorBlockedValue) && (blue < sensorBlockedValue)
+			&& (yellow > sensorBlockedValue) && (currentWall->getColour() == "Blue")) // if blue sensor is blocked and the wall is blue
+		{
+			currentWall->turnIsBlockedOn();
+		}
+		else if ((red > sensorBlockedValue) && (green > sensorBlockedValue) && (blue > sensorBlockedValue)
+			&& (yellow < sensorBlockedValue) && (currentWall->getColour() == "Yellow")) // if yellow sensor is blocked and the wall is yellow
+		{
+			currentWall->turnIsBlockedOn();
+		}
+		else
+		{
+			currentWall->turnIsBlockedOff();
+		}
 	}
 }
 
 Player * Game::getPlayer()
 {
 	return player;
+}
+
+void Game::gameoverTextRender()
+{
+	int playerScore = player->getScore(); // gets player score
+	string stringPlayerScore = "Your Score: " + std::to_string(playerScore); // changes int to string and adds some text
+	char const * charPlayerScore = stringPlayerScore.c_str(); // changes string to char to work with the SDL tff
+	SDL_Color Black = { 0, 0, 0 };
+	SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Font, charPlayerScore, Black);
+	SDL_Texture* Message = SDL_CreateTextureFromSurface(mainRenderer, surfaceMessage);
+	SDL_FreeSurface(surfaceMessage);
+	SDL_RenderCopy(mainRenderer, Message, NULL, &scoreRect);
+	SDL_DestroyTexture(Message);
+	surfaceMessage = TTF_RenderText_Solid(Font, "Gameover!", Black);
+	Message = SDL_CreateTextureFromSurface(mainRenderer, surfaceMessage);
+	SDL_FreeSurface(surfaceMessage);
+	SDL_RenderCopy(mainRenderer, Message, NULL, &gameoverRect);
+	SDL_DestroyTexture(Message);
 }
 
 

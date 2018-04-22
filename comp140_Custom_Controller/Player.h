@@ -12,9 +12,11 @@ public:
 
 	int score;
 	bool playerAlive;
+	int lives;
 
 	void update();
 	int getScore();
+	void setDead();
 
 };
 

@@ -6,6 +6,7 @@
 Player::Player()
 {
 	score = 0;
+	lives = 1;
 	playerAlive = true;
 }
 
@@ -24,5 +25,10 @@ void Player::update()
 int Player::getScore()
 {
 	return score;
+}
+
+void Player::setDead()
+{
+	playerAlive = false;
 }
 
