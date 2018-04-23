@@ -19,9 +19,8 @@ Game::Game()
 	srand(time(NULL));
 
 	serialInterface = new SerialInterface(); // initiates the serial interface
-	// fill the wallList with wall objects
 	player = new Player(); // initiate player
-	for (unsigned int a = 0; a < sizeof(wallList) / sizeof(wallList[0]); a = a + 1) {
+	for (unsigned int a = 0; a < sizeof(wallList) / sizeof(wallList[0]); a = a + 1) { // fill the wallList with wall objects
 		wallList[a] = new Wall;
 	}
 	wallList[0]->setWallActive(); // activates the first wall
@@ -38,6 +37,7 @@ Game::~Game()
 
 /*
 * init - used to initialise and setup SDL
+* setup the rects for some images, load images and font
 * Return true if everything is successful
 */
 bool Game::init(const char * title, int xpos, int ypos, int width, int height, int flags)
@@ -98,7 +98,7 @@ bool Game::init(const char * title, int xpos, int ypos, int width, int height, i
 	playerRect.w = 100;
 	playerRect.h = 100;
 
-	// create rect for score
+	// create rect for gameover
 	gameoverRect.x = 50;
 	gameoverRect.y = 100;
 	gameoverRect.w = 400;
@@ -132,11 +132,12 @@ bool Game::init(const char * title, int xpos, int ypos, int width, int height, i
 	return true;
 }
 
+/*
+* renders all images to the screen
+*
+*/
 void Game::render()
 {
-	// set background color
-	//SDL_SetRenderDrawColor(mainRenderer, 135, 206, 250, 255);
-	
 	// clear previous frame
 	SDL_RenderClear(mainRenderer);
 
@@ -146,31 +147,10 @@ void Game::render()
 	// render player
 	SDL_RenderCopy(mainRenderer, playerImage, NULL, &playerRect);
 
-	// draw to the screen here!
-	// iterate through list of objects
-	for (unsigned int a = 0; a < sizeof(wallList) / sizeof(wallList[0]); a = a + 1) {
-		SDL_Rect currentRect = wallList[a]->getRect();
-		std::string currentColour = wallList[a]->getColour();
-		if (currentColour == "Yellow") {
-			SDL_RenderCopy(mainRenderer, yellowBeam, NULL, &currentRect);
-		}
-		else if (currentColour == "Red") {
-			SDL_RenderCopy(mainRenderer, redBeam, NULL, &currentRect);
-		}
-		else if (currentColour == "Blue") {
-			SDL_RenderCopy(mainRenderer, blueBeam, NULL, &currentRect);
-		}
-		else if (currentColour == "Green") {
-			SDL_RenderCopy(mainRenderer, greenBeam, NULL, &currentRect);
-		}
-		else if (currentColour == "White") {
-			SDL_RenderCopy(mainRenderer, whiteBeam, NULL, &currentRect);
-		}
-		else if (currentColour == "Black") {
-			SDL_RenderCopy(mainRenderer, blackBeam, NULL, &currentRect);
-		}
-	}
+	// runs render walls
+	renderWalls();
 
+	// if player is dead show game over and score
 	if (!player->playerAlive)
 	{
 		gameoverTextRender();
@@ -225,22 +205,24 @@ void Game::handleEvents()
 }
 
 /*
-* clean - Clean up SDL and close the port
+* clean - Clean up SDL
 *
 */
 void Game::clean()
 {	
-	serialInterface->close();
-
 	cout << "Cleaning SDL \n";
 	SDL_DestroyWindow(mainWindow);
 	SDL_DestroyRenderer(mainRenderer);
 	SDL_Quit();
 }
 
-void Game::handleWallBlocking(Wall * currentWall) // checks wall to see if it's blocked and changes the variable if it is or isn't
+/*
+* checks wall to see if it's blocked and changes the variable if it is or isn't
+*
+*/
+void Game::handleWallBlocking(Wall * currentWall)
 {
-	if (player->playerAlive)
+	if (player->playerAlive) // only do if player is alive
 	{
 		int red = serialInterface->getRedValue();
 		int green = serialInterface->getGreenValue();
@@ -248,12 +230,12 @@ void Game::handleWallBlocking(Wall * currentWall) // checks wall to see if it's 
 		int yellow = serialInterface->getYellowValue();
 
 		if ((red >= sensorBlockedValue) && (green >= sensorBlockedValue) && (blue >= sensorBlockedValue)
-			&& (yellow >= sensorBlockedValue) && (currentWall->getColour() == "White")) // if all sensors blocked (White) and the wall is black
+			&& (yellow >= sensorBlockedValue) && (currentWall->getColour() == "White")) // if all sensors are not blocked (White) and the wall is white
 		{
 			currentWall->turnIsBlockedOn();
 		}
 		else if ((red < sensorBlockedValue) && (green < sensorBlockedValue) && (blue < sensorBlockedValue)
-			&& (yellow < sensorBlockedValue) && (currentWall->getColour() == "Black")) // if all sensors are not blocked (Black) and the wall is white
+			&& (yellow < sensorBlockedValue) && (currentWall->getColour() == "Black")) // if all sensors are blocked (Black) and the wall is black
 		{
 			currentWall->turnIsBlockedOn();
 		}
@@ -284,24 +266,62 @@ void Game::handleWallBlocking(Wall * currentWall) // checks wall to see if it's 
 	}
 }
 
+/*
+* renders all walls depending on there colour values
+*
+*/
+void Game::renderWalls()
+{
+	for (unsigned int a = 0; a < sizeof(wallList) / sizeof(wallList[0]); a = a + 1) {
+		SDL_Rect currentRect = wallList[a]->getRect();
+		std::string currentColour = wallList[a]->getColour();
+		if (currentColour == "Yellow") {
+			SDL_RenderCopy(mainRenderer, yellowBeam, NULL, &currentRect);
+		}
+		else if (currentColour == "Red") {
+			SDL_RenderCopy(mainRenderer, redBeam, NULL, &currentRect);
+		}
+		else if (currentColour == "Blue") {
+			SDL_RenderCopy(mainRenderer, blueBeam, NULL, &currentRect);
+		}
+		else if (currentColour == "Green") {
+			SDL_RenderCopy(mainRenderer, greenBeam, NULL, &currentRect);
+		}
+		else if (currentColour == "White") {
+			SDL_RenderCopy(mainRenderer, whiteBeam, NULL, &currentRect);
+		}
+		else if (currentColour == "Black") {
+			SDL_RenderCopy(mainRenderer, blackBeam, NULL, &currentRect);
+		}
+	}
+}
+
+/*
+* gets current player
+*
+*/
 Player * Game::getPlayer()
 {
 	return player;
 }
 
+/*
+* once player dead this is called to show game over and player score
+*
+*/
 void Game::gameoverTextRender()
 {
 	int playerScore = player->getScore(); // gets player score
 	string stringPlayerScore = "Your Score: " + std::to_string(playerScore); // changes int to string and adds some text
 	char const * charPlayerScore = stringPlayerScore.c_str(); // changes string to char to work with the SDL tff
-	SDL_Color Black = { 0, 0, 0 };
-	SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Font, charPlayerScore, Black);
-	SDL_Texture* Message = SDL_CreateTextureFromSurface(mainRenderer, surfaceMessage);
-	SDL_FreeSurface(surfaceMessage);
-	SDL_RenderCopy(mainRenderer, Message, NULL, &scoreRect);
+	SDL_Color Black = { 0, 0, 0 }; // set text colour
+	SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Font, charPlayerScore, Black); // create surfacemessage
+	SDL_Texture* Message = SDL_CreateTextureFromSurface(mainRenderer, surfaceMessage); // create message using surface message
+	SDL_FreeSurface(surfaceMessage); // free the surface
+	SDL_RenderCopy(mainRenderer, Message, NULL, &scoreRect); 
 	SDL_DestroyTexture(Message);
-	surfaceMessage = TTF_RenderText_Solid(Font, "Gameover!", Black);
-	Message = SDL_CreateTextureFromSurface(mainRenderer, surfaceMessage);
+	surfaceMessage = TTF_RenderText_Solid(Font, "Gameover!", Black); // add the text using the stored font and colour to surface message
+	Message = SDL_CreateTextureFromSurface(mainRenderer, surfaceMessage); 
 	SDL_FreeSurface(surfaceMessage);
 	SDL_RenderCopy(mainRenderer, Message, NULL, &gameoverRect);
 	SDL_DestroyTexture(Message);

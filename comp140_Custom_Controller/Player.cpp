@@ -2,7 +2,10 @@
 #include "Player.h"
 #include "stdlib.h"
 
-
+/*
+* init the player
+*
+*/
 Player::Player()
 {
 	score = 0;
@@ -15,6 +18,10 @@ Player::~Player()
 {
 }
 
+/*
+* if player is alive increases the score every tick
+*
+*/
 void Player::update()
 {
 	if (playerAlive) {

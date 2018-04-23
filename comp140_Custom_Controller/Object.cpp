@@ -11,6 +11,10 @@ Object::~Object()
 {
 }
 
+/*
+* creates the rect for a new object
+*
+*/
 void Object::setRect(int posX, int posY, int width, int height)
 {
 	objectRect;
@@ -20,6 +24,10 @@ void Object::setRect(int posX, int posY, int width, int height)
 	objectRect.h = height;
 }
 
+/*
+* returns rect values of object
+*
+*/
 SDL_Rect Object::getRect()
 {
 	return objectRect;

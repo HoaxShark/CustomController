@@ -12,14 +12,23 @@ class Game
 public:
 	Game();
 	~Game();
-	int sensorBlockedValue = 780; // used to tell if the sensor is blocked compared agaisnt the light sensor values
+	
 	bool init(const char* title, int xpos, int ypos, int width, int height, int flags);
 	void render();
 	void update();
 	void handleEvents();
 	void clean();
-	void handleWallBlocking(Wall *currentWall);
-	Wall* wallList[10];
+	
+	Wall* wallList[10]; // array of all wall objects, walls are used multiple times to save memory
+	
+	Player * player;
+	Player * getPlayer();
+	
+
+	bool running() { return isRunning; };
+
+private:
+	int sensorBlockedValue = 880; // used to tell if the sensor is blocked compared agaisnt the light sensor values
 	SDL_Texture* newImage;
 	SDL_Texture* groundImage;
 	SDL_Texture* skyImage;
@@ -35,20 +44,16 @@ public:
 	SDL_Rect playerRect;
 	SDL_Rect scoreRect;
 	SDL_Rect gameoverRect;
-	Player * player;
-	Player * getPlayer();
-	TTF_Font * Font;
-
-	bool running() { return isRunning; };
-
-private:
 	SDL_Window* mainWindow;
 	SDL_Renderer* mainRenderer;
+	TTF_Font * Font;
 
 	bool isRunning;
 
 	SerialInterface* serialInterface;
 	void gameoverTextRender();
+	void handleWallBlocking(Wall *currentWall);
+	void renderWalls();
 };
 
 extern Game game;

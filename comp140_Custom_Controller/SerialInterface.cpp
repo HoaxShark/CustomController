@@ -8,6 +8,10 @@ using std::exception;
 using std::stoi;
 using std::string;
 
+/*
+* looks through COM ports and takes the first connected
+*
+*/
 SerialInterface::SerialInterface()
 {
 	vector <serial::PortInfo> devicesFound = serial::list_ports(); // checks all serial ports
@@ -38,6 +42,10 @@ SerialInterface::~SerialInterface()
 {
 }
 
+/*
+* sends a string message to the connected serial port
+*
+*/
 void SerialInterface::send(string msg)
 {
 	if (connect) {
@@ -45,14 +53,18 @@ void SerialInterface::send(string msg)
 	}
 }
 
+/*
+* sends a message to the serial to activate the arduino sending data back
+* seperates the string of data into 4 int values
+*/
 void SerialInterface::getValues()
 {
 	if (connect) {
 		mySerial->write("H"); // sends string to get potentiometer readings back
 
-		string result = mySerial->readline();
+		string result = mySerial->readline(); // read returned data from serial and store as a variable
 
-		if (result.length() >= 15) {
+		if (result.length() >= 15) { // if the returned data is long enough break it up and change from string to int
 			string sub1 = result.substr(0, 4);
 			redValue = std::stoi(sub1);
 			string sub2 = result.substr(4, 4);
@@ -65,13 +77,12 @@ void SerialInterface::getValues()
 	}
 }
 
+/*
+* prints the values for debugging
+*
+*/
 void SerialInterface::printValues()
 {
 	std::cout << "Red - " << redValue << "Green - " <<  greenValue << "Blue - " <<  blueValue << "Yellow - " << yellowValue << std::endl;
 }
 
-void SerialInterface::close()
-{
-	//mySerial->flush();
-	//mySerial->close();
-}

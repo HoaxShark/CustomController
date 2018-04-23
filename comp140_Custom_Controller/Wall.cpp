@@ -6,11 +6,10 @@
 
 Wall::Wall()
 {
-	chooseColour();
+	chooseColour(); // pick a random colour from the 6 options
 	setRect(640, 0, 50, wallHeight);
-	// get a number between 100 and 400 to spawn the next wall
-	nextWallSpawn = rand() % 100 + difficulty;
-	currentPlayer = game.getPlayer();
+	nextWallSpawn = rand() % 100 + difficulty; // get a number between 100 and current difficulty to spawn the next wall
+	currentPlayer = game.getPlayer(); // bring the player into this file
 }
 
 
@@ -18,6 +17,10 @@ Wall::~Wall()
 {
 }
 
+/*
+* Sets the wall colour value to a random one out of 6 options
+*
+*/
 void Wall::chooseColour()
 {
 	// grab a random number between 1 and 4
@@ -49,11 +52,20 @@ void Wall::chooseColour()
 	}
 }
 
+/*
+* returns wall colour
+*
+*/
 std::string Wall::getColour()
 {
 	return wallColour;
 }
 
+/*
+* updates wall positions and size if they are blocked or not
+* checks the position, if over the player sets player dead
+* activates the next wall once passed a randomly generated position
+*/
 void Wall::updateWall()
 {
 	if (wallActive && isBlocked) // if the input is blocked shorten the wall
@@ -64,7 +76,7 @@ void Wall::updateWall()
 	{
 		wallHeight = 480;
 	}
-	if (posX <= 130 && posX >= 10 && !isBlocked) // if the beam isn't blocked when crossing a certain point set player to dead
+	if (posX <= 130 && posX >= 20 && !isBlocked) // if the beam isn't blocked when crossing a certain point set player to dead
 	{
 		currentPlayer->setDead();
 	}
@@ -105,6 +117,10 @@ int Wall::getNextWallSpawn()
 	return nextWallSpawn;
 }
 
+/*
+* geos through the list of walls to find the first inactive wall and activates it
+*
+*/
 void Wall::activateNextWall()
 {
 	for (unsigned int a = 0; a < sizeof(Game::wallList) / sizeof(Game::wallList[0]); a = a + 1)
@@ -132,7 +148,11 @@ void Wall::turnIsBlockedOff()
 	isBlocked = false;
 }
 
-void Wall::increaseDifficulty() // raises the difficulty value meaning walls can spawn closer together
+/*
+* raises the difficulty once hitting ceratin score values meaning walls can spawn closer together
+*
+*/
+void Wall::increaseDifficulty()
 {
 	if (currentPlayer->getScore() <= 5000)
 	{

@@ -20,8 +20,6 @@ public:
 	int getBlueValue() { return blueValue; };
 	int getYellowValue() { return yellowValue; };
 
-	void close();
-
 private:
 	serial::Serial* mySerial;
 	bool connect = false;
