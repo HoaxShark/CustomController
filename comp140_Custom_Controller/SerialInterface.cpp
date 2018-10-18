@@ -20,7 +20,7 @@ SerialInterface::SerialInterface()
 
 	while (iter != devicesFound.end()) {
 		serial::PortInfo device = *iter++; // gets current device
-		string port = device.port.c_str();
+		string port = "COM3"; //device.port.c_str();
 
 		try {
 			mySerial = new serial::Serial(port, 115200, serial::Timeout::simpleTimeout(250));

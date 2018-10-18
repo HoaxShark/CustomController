@@ -28,7 +28,7 @@ public:
 	bool running() { return isRunning; };
 
 private:
-	int sensorBlockedValue = 880; // used to tell if the sensor is blocked compared agaisnt the light sensor values
+	int sensorBlockedValue = 800; // used to tell if the sensor is blocked compared agaisnt the light sensor values
 	SDL_Texture* newImage;
 	SDL_Texture* groundImage;
 	SDL_Texture* skyImage;
